@@ -213,7 +213,7 @@ class Malom:
 
     def play_game(self):
         self.draw_board()
-        for i in range(10): # 9-9 placing lépés
+        for i in range(18): # 9-9 placing lépés
             self.place_piece(self.turn)
         while self.player_pieces >= 3 and self.ai_pieces >= 3:
             if self.turn == "Player":
