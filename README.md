@@ -4,7 +4,11 @@ Projektünkben a közismert malom játékot valósítottuk meg python programoz�
 
 ## Játékszabály
 A malom játékot két játékos játsza, az egyik a fekete, a másik a fehér bábukkal van. A tábla így néz ki:
-![image](images/ürestábla.jpg)
+
+
+<img src="images/ürestábla.jpg" width=400>
+
+
 Minden játékosnak az a célja, hogy a táblán három, egy egyenesen lévő csomópontot elfoglaljon a saját bábuival. Ha ez megtörténik, a játékos levehet egy bábut az ellenféltől. A játéknak három szakasza van. Az első szakaszban a játékosok felváltva lerakják az összes bábujukat. A második szakaszban a játékosok felváltva lépnek egyet-egyet. Lépni csak szomszédos csomópontra lehet. Amikor valakinek mindössze három bábuja marad, elkezdődik számára a harmadik szakasz. Ekkor a játékos már nemcsak szomszédos csomópontra léphat, hanem bármely üres csomópontra átugorhat. A játéknak akkor van vége, ha valakinek csak kettő bábuja marad. A másik fél nyer.
 (A játékszabály részletesebb leírása: http://mek.niif.hu/00000/00056/html/135.htm)
 
@@ -43,9 +47,17 @@ Ide azokat a koordinátákat kell beírni, ahova a bábut szeretni tennénk.
 Pozíció (pl. 1,1): 3,3
 ```
 A lépésünk ezután meg is jelenik:
-![image](images/elso%20lepes%20tablan.jpg)
+
+
+<img src="images/elso lepes tablan.jpg" width=400>
+
+
 A táblát a felugró ablakban be kell zárnunk, majd újra megjelenik magától, már az AI lépésével együtt.
-![image](images/elso%20ai.jpg)
+
+
+<img src="images/elso ai.jpg" width=400>
+
+
 A játék során bármikor ha olyan koordinátát írunk, ami valami miatt nem lehetséges, akkor ezt az üzenetet írja a program:
 
 ```shell
