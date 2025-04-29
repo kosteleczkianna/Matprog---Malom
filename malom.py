@@ -416,7 +416,7 @@ class Malom:
                 for pos in mill:
                     if pos in neighbouring_pieces:
                         neighbouring_pieces.remove(pos)
-                    if self.board(pos) == "Player" and self.is_valid_removal("Player", pos) is True:
+                    if self.board[pos] == "Player" and self.is_valid_removal("Player", pos) is True:
                         removable_pieces.append(pos)
                 if neighbouring_pieces and removable_pieces:
                     if len(removable_pieces) == 2 and len(self.neighbouring_pieces("Player", removable_pieces[1])) > len(self.neighbouring_pieces("Player", removable_pieces[0])):
@@ -540,32 +540,33 @@ class Malom:
                             return True
         def potential_mill(move):
             from_pos, to_pos = move
-            # Első lépés: létrehozzuk az ideiglenes táblát az első lépéssel
             temp_board = self.board.copy()
             temp_board[from_pos] = None
             temp_board[to_pos] = "AI"
 
-            # Második lépések generálása
+            # Üres pozíciók a temp_board alapján!
+            empty_pos = [pos for pos, piece in temp_board.items() if piece is None]
+
             movable_pieces = [pos for pos, piece in temp_board.items() if piece == "AI"]
-            empty_pos = self.empty_positions()
-            
-            # Lehetséges második lépések (csak az érvényes lépéseket)
+
             valid_second_moves = [(conn[0], conn[1]) for conn in self.connections
                                 if conn[0] in movable_pieces and conn[1] in empty_pos]
             valid_second_moves += [(conn[1], conn[0]) for conn in self.connections
-                                    if conn[1] in movable_pieces and conn[0] in empty_pos]
+                                if conn[1] in movable_pieces and conn[0] in empty_pos]
 
-            # Ellenőrizzük, hogy az első lépés után van-e olyan második lépés, ami malmot hozhat létre
             for second_move in valid_second_moves:
-                _, second_pos = second_move
+                second_from, second_to = second_move
+
+                # szimuláljuk a második lépést is
+                temp_board_second = temp_board.copy()
+                temp_board_second[second_from] = None
+                temp_board_second[second_to] = "AI"
+
                 for mill in self.mills:
-                    if second_pos in mill:
-                        # Ellenőrizzük, hogy a második lépés új malmot hozhat létre
-                        other_positions = [pos for pos in mill if pos != second_pos]
-                        if all(temp_board[pos] == "AI" for pos in other_positions):
-                            # Ellenőrizzük, hogy az első lépés nem ugyanabba a malomba hozta-e a bábut
-                            if from_pos not in mill:
-                                return True
+                    if second_to in mill:
+                        other_positions = [pos for pos in mill if pos != second_to]
+                        if all(temp_board_second[pos] == "AI" for pos in other_positions):
+                            return True
             return False
 
         # 1. Malom képzése
