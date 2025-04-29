@@ -145,7 +145,7 @@ class Malom:
             empty_pos = self.empty_positions()
             valid_moves = [(conn[0], conn[1]) for conn in self.connections if conn[0] in movable_pieces and conn[1] in empty_pos]
             valid_moves += [(conn[1], conn[0]) for conn in self.connections if conn[1] in movable_pieces and conn[0] in empty_pos]
-            old_pos, new_pos = self.moving_strategy(valid_moves)
+            old_pos, new_pos = self.moving_strategy()
             self.board[old_pos] = None
             self.board[new_pos] = "AI"
             self.draw_board()
@@ -317,7 +317,6 @@ class Malom:
                          self.placing_make_diagonal(), self.placing_make_potential_mill(), self.placing_random_move()]:
             if strategy is not None:
                 return strategy
-        return None #ez az ha nem tud lépni
     
 
 
@@ -377,6 +376,89 @@ class Malom:
 
 
 
+    def moving_make_mill(self):
+        for mill in self.mills:
+            positions = [self.board[pos] for pos in mill]
+            if positions.count("AI") == 2 and positions.count(None) == 1:
+                possible_old_pos = [pos for pos in self.neighbouring_pieces("AI", mill[positions.index(None)]) if pos not in mill]
+                if possible_old_pos:
+                    return [random.choice(possible_old_pos), mill[positions.index(None)]]
+        return None
+
+    def moving_block_opponent_mill(self):
+        for mill in self.mills:
+            positions = [self.board[pos] for pos in mill]
+            if positions.count("Player") == 2 and positions.count(None) == 1:
+                neighbouring_pieces = self.neighbouring_pieces("Player", mill[0]) + self.neighbouring_pieces("Player", mill[1]) + self.neighbouring_pieces("Player", mill[2])
+                for pos in mill:
+                    if pos in neighbouring_pieces:
+                        neighbouring_pieces.remove(pos)
+                possible_old_pos = self.neighbouring_pieces("AI", mill[positions.index(None)])
+                if neighbouring_pieces and possible_old_pos:
+                    old_pos = [pos for pos in possible_old_pos if self.is_blocking_piece(pos) is False and self.is_in_mill("AI", pos) is False]
+                    if old_pos:
+                        return [random.choice(old_pos), mill[positions.index(None)]]
+                    return [random.choice(possible_old_pos), mill[positions.index(None)]]
+        return None    
+
+    def moving_make_csikicsuki(self):
+        for mill in self.mills:
+            positions = [self.board[pos] for pos in mill]
+            if positions.count("AI") == 3:
+                for other_mill in self.mills:
+                    other_positions = [self.board[pos] for pos in other_mill]
+                    if other_positions.count("AI") == 2 and other_positions.count(None) == 1 and set(other_mill).isdisjoint(set(mill)):
+                        ai_positions = [pos for pos in other_mill if self.board[pos] == "AI"]
+                        if ai_positions[0] in (self.neighbouring_pieces("AI", mill[0])+self.neighbouring_pieces("AI", mill[1])+self.neighbouring_pieces("AI", mill[2])):
+                            return [ai_positions[0], other_mill[other_positions.index(None)]]
+                        if ai_positions[1] in (self.neighbouring_pieces("AI", mill[0])+self.neighbouring_pieces("AI", mill[1])+self.neighbouring_pieces("AI", mill[2])):
+                            return [ai_positions[1], other_mill[other_positions.index(None)]]
+        for mill in self.mills:
+            positions = [self.board[pos] for pos in mill]
+            if positions.count("AI") == 3:
+                for other_mill in self.mills:
+                    other_positions = [self.board[pos] for pos in other_mill]
+                    if other_positions.count("AI") == 1 and other_positions.count(None) == 2 and set(other_mill).isdisjoint(set(mill)):
+                        none_positions = [pos for pos in other_mill if self.board[pos] == None]
+                        old_pos_0 = list(set(self.neighbouring_pieces("AI", none_positions[0])) - set(other_mill))
+                        old_pos_1 = list(set(self.neighbouring_pieces("AI", none_positions[1])) - set(other_mill))
+                        if none_positions[1] in (self.neighbouring_pieces(None, mill[0])+self.neighbouring_pieces(None, mill[1])+self.neighbouring_pieces(None, mill[2])) and old_pos_0:
+                            return [random.choice(old_pos_0), none_positions[0]]
+                        elif none_positions[0] in (self.neighbouring_pieces(None, mill[0])+self.neighbouring_pieces(None, mill[1])+self.neighbouring_pieces(None, mill[2])) and old_pos_1:
+                            return [random.choice(old_pos_1), none_positions[1]]
+        return None
+
+    def moving_make_potential_mill(self):
+        for mill in self.mills:
+            positions = [self.board[pos] for pos in mill]
+            if positions.count("AI") == 2 and positions.count(None) == 1:
+                possible_new_pos = self.neighbouring_pieces(None, mill[positions.index(None)])
+                possible_old_new_pos = [[old_pos, new_pos] for new_pos in possible_new_pos for old_pos in self.neighbouring_pieces("AI", new_pos) 
+                                        if self.is_blocking_piece(old_pos) is False and self.is_in_mill("AI", old_pos) is False]
+                if possible_old_new_pos:
+                    return random.choice(possible_old_new_pos)
+        return None
+
+    def moving_random_move(self):
+        possible_old_pos = [pos for pos, piece in self.board.items() if piece == "AI" and self.is_blocking_piece(pos) is False]
+        possible_old_new_pos = [[old_pos, new_pos] for old_pos in possible_old_pos for new_pos in self.neighbouring_pieces(None, old_pos)]
+        if possible_old_new_pos:
+            return random.choice(possible_old_new_pos)
+        else:
+            possible_old_pos = [pos for pos, piece in self.board.items() if piece == "AI"]
+            possible_old_new_pos = [[old_pos, new_pos] for old_pos in possible_old_pos for new_pos in self.neighbouring_pieces(None, old_pos)]
+            if possible_old_new_pos:
+                return random.choice(possible_old_new_pos)
+        return None
+
+    def moving_strategy(self):
+        for strategy in [self.moving_make_mill(), self.moving_block_opponent_mill(), self.moving_make_csikicsuki(), self.moving_make_potential_mill(), self.moving_random_move()]:
+            if strategy is not None:
+                return strategy # Ez egy pár: mit hova visz
+        return None #ez az ha nem tud lépni
+
+
+
     def neighbouring_pieces(self, player, pos):
         neighbours1 = [conn[0] for conn in self.connections if conn[1] == pos]
         neighbours2 = [conn[1] for conn in self.connections if conn[0] == pos]
@@ -390,7 +472,7 @@ class Malom:
             if positions.count("Player") == 3:
                 for other_mill in self.mills:
                     other_positions = [self.board[pos] for pos in other_mill]
-                    if other_positions.count("Player") == 2 and other_positions.count(None) == 1 and other_mill[positions.index(None)] in (
+                    if other_positions.count("Player") == 2 and other_positions.count(None) == 1 and other_mill[other_positions.index(None)] in (
                         self.neighbouring_pieces(None, mill[0])+self.neighbouring_pieces(None, mill[1])+self.neighbouring_pieces(None, mill[2])):
                         removable_pieces = [pos for pos in other_mill if self.is_valid_removal("Player", pos) is True]
                         if removable_pieces:
@@ -400,7 +482,7 @@ class Malom:
             if positions.count("Player") == 3:
                 for other_mill in self.mills:
                     other_positions = [self.board[pos] for pos in other_mill]
-                    if other_positions.count("Player") == 2 and other_positions.count("AI") == 1 and other_mill[positions.index("AI")] in (
+                    if other_positions.count("Player") == 2 and other_positions.count("AI") == 1 and other_mill[other_positions.index("AI")] in (
                         self.neighbouring_pieces("AI", mill[0])+self.neighbouring_pieces("AI", mill[1])+self.neighbouring_pieces("AI", mill[2])):
                         removable_pieces = [pos for pos in other_mill if self.is_valid_removal("Player", pos) is True]
                         if removable_pieces:
@@ -475,120 +557,6 @@ class Malom:
                 return strategy
 
 
-
-
-
-
-    def moving_strategy(self, valid_moves):
-
-
-
-        def is_safe_move(move):        #ez azt vizsgálja hogy nem alakít-e ki malomlehetőséget a player-nek
-            from_pos, to_pos = move
-            temp_board = self.board.copy()
-            temp_board[from_pos] = None
-            temp_board[to_pos] = "AI"  # Az AI lép
-
-            # Minden malom, ami from_pos-t tartalmazza
-            for mill in self.mills:
-                if from_pos in mill:
-                    # Ha a malomban a Player-nek 2 bábuja van
-                    player_piece_count = sum(self.board[pos] == "Player" for pos in mill)
-                    if player_piece_count >= 2:
-                        # Szimulált tábla, ahol az adott malomból kivesszük a Player bábukat
-                        simulated_board = temp_board.copy()
-                        for pos in mill:
-                            if simulated_board[pos] == "Player":
-                                simulated_board[pos] = None
-
-                        # Megnézzük, hogy a from_pos körül van-e szomszédos Player bábu
-                        for neighbor in self.neighbouring_pieces("Player", from_pos):
-                            if simulated_board[neighbor] == "Player":
-                                return False  # nem biztonságos
-            return True  # ha nem találtunk semmit, akkor biztonságos a lépés
-
-
-        def would_form_mill(player, from_pos, to_pos):
-            for mill in self.mills:
-                if to_pos in mill:
-                    other_positions = [pos for pos in mill if pos != to_pos]
-                    if all(self.board[pos] == player for pos in other_positions):
-                        if from_pos in mill:
-                            continue
-                        return True
-            return False
-
-        def blocks_opponent_mill(move):
-            from_pos, to_pos = move
-            temp_board = self.board.copy()
-            temp_board[from_pos] = None
-            temp_board[to_pos] = "AI"
-
-            for mill in self.mills:
-                if to_pos in mill:
-                    opp_positions = [pos for pos in mill if temp_board[pos] == "Player"]
-                    empty_positions = [pos for pos in mill if temp_board[pos] is None]
-                    if len(opp_positions) == 2 and len(empty_positions) == 1:
-                        # Szimuláció: kivesszük a malomból az ellenfél bábuit
-                        simulated_board = temp_board.copy()
-                        for pos in mill:
-                            if simulated_board[pos] == "Player":
-                                simulated_board[pos] = None
-                        # Vizsgáljuk a to_pos szomszédait
-                        neighbors = self.neighbouring_pieces("Player", to_pos)
-                        if neighbors:  # Ha maradna másik bábuja mellette, akkor veszélyes
-                            return True
-        def potential_mill(move):
-            from_pos, to_pos = move
-            temp_board = self.board.copy()
-            temp_board[from_pos] = None
-            temp_board[to_pos] = "AI"
-
-            # Üres pozíciók a temp_board alapján!
-            empty_pos = [pos for pos, piece in temp_board.items() if piece is None]
-
-            movable_pieces = [pos for pos, piece in temp_board.items() if piece == "AI"]
-
-            valid_second_moves = [(conn[0], conn[1]) for conn in self.connections
-                                if conn[0] in movable_pieces and conn[1] in empty_pos]
-            valid_second_moves += [(conn[1], conn[0]) for conn in self.connections
-                                if conn[1] in movable_pieces and conn[0] in empty_pos]
-
-            for second_move in valid_second_moves:
-                second_from, second_to = second_move
-
-                # szimuláljuk a második lépést is
-                temp_board_second = temp_board.copy()
-                temp_board_second[second_from] = None
-                temp_board_second[second_to] = "AI"
-
-                for mill in self.mills:
-                    if second_to in mill:
-                        other_positions = [pos for pos in mill if pos != second_to]
-                        if all(temp_board_second[pos] == "AI" for pos in other_positions):
-                            return True
-            return False
-
-        # 1. Malom képzése
-        for move in valid_moves:
-            if would_form_mill("AI", move[0], move[1]):
-                return move
-        safe_moves = [move for move in valid_moves 
-                if is_safe_move(move)]
-
-        # 2. Ellenfél malmának megakadályozása
-        for move in safe_moves:
-            if blocks_opponent_mill(move):
-                return move
-
-        # 3. Potenciális malom
-        for move in safe_moves:
-            if potential_mill(move):
-                return move
-        # 4. Random biztonságos lépés
-        if len(safe_moves)>0:
-            return random.choice(safe_moves)
-        # 5. Random lépés
-        return random.choice(valid_moves)
+    
 game = Malom()
 game.play_game()
