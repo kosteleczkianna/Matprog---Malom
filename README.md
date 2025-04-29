@@ -10,12 +10,18 @@ A malom játékot két játékos játsza, az egyik a fekete, a másik a fehér b
 
 
 Minden játékosnak az a célja, hogy a táblán három, egy egyenesen lévő csomópontot elfoglaljon a saját bábuival. Ha ez megtörténik, a játékos levehet egy bábut az ellenféltől. A játéknak három szakasza van. Az első szakaszban a játékosok felváltva lerakják az összes bábujukat. A második szakaszban a játékosok felváltva lépnek egyet-egyet. Lépni csak szomszédos csomópontra lehet. Amikor valakinek mindössze három bábuja marad, elkezdődik számára a harmadik szakasz. Ekkor a játékos már nemcsak szomszédos csomópontra léphat, hanem bármely üres csomópontra átugorhat. A játéknak akkor van vége, ha valakinek csak kettő bábuja marad. A másik fél nyer.
+Megjegyzés: a malomban használatos kifejezés a csikicsuki, ami egy olyan elhelyezkedést jelöl, melyben az egyik játékos az egyik bábuját úgy tudja mozgatni, hogy minden lépésében malmot fejez be vele. Például az alábbi ábrán a fehér játékosnak van egy csikicsukija:
+
+<img src="images/csikicsuki.jpg" width=400>
+
+
+
 (A játékszabály részletesebb leírása: http://mek.niif.hu/00000/00056/html/135.htm)
 
 ## A program futtatása
 A feltöltött "malom.py" fájlban található a kód. 
 A játék során a tábla csomópontjaira mindig koordinátákkal tudunk hivatkozni. Ezeket a koordinátákat minden esetben vesszővel elválasztva, zárójel nélkül kell beírni, (például: 1,1). A tábla közepe az origó, a 0,0. A játékban szereplő csomópontok koordinátái az origóhoz képest határozhatóak meg. A csomópontok koordinátái rendre: -3,3; 0,3; 3,3; -2,2; 0,2; 2,2; -1,1; 0,1; 1,1; -3,0; -2,0; -1,0; 1,0; 2,0; 3,0; -1,-1; 0,-1; 1,-1; -2,-2; 0,-2; 2,-2; -3,-3; 0,-3; 3,-3.
-Be tudjuk állítani a kódban azt, hogy fejenként hány bábu legyen a játékban:
+A kódban a play_game függvényben be tudjuk állítani azt, hogy fejenként hány bábu legyen a játékban:
 
 ```python
     def play_game(self):
@@ -41,7 +47,7 @@ Ezt be kell zárnunk ahhoz, hogy az első lépésre felszólítást kapjunk.
 ```shell
 Pozíció (pl. 1,1):
 ```
-Ide azokat a koordinátákat kell beírni, ahova a bábut szeretni tennénk.
+Ide azokat a koordinátákat kell beírni, ahova a bábut tenni szeretnénk.
 
 ```shell
 Pozíció (pl. 1,1): 3,3
@@ -64,8 +70,18 @@ A játék során bármikor ha olyan koordinátát írunk, ami valami miatt nem l
 Ezt nem lehet! Próbáld újra!
 Pozíció (pl. 1,1):
 ```
-Ha sikerül malmot raknunk, akkor rá fog kérdezni a program, hogy az AI melyik bábuját szeretnénk eltávolítani. Ekkor ugyanúgy koordinátákkal tudunk válaszolni. Amikor már a lépés fázisban vagyunk, akkor egy lépés során a mozgatandó bábu helyét és az új helyet is meg kell adnunk koordinátákkal.Ugyanígy az ugrálásnál is. 
-kép
+Ha sikerül malmot raknunk, akkor rá fog kérdezni a program, hogy az AI melyik bábuját szeretnénk eltávolítani. Ekkor ugyanúgy koordinátákkal tudunk válaszolni. Amikor már a lépés fázisban vagyunk, akkor egy lépés során a mozgatandó bábu helyét és az új helyet is meg kell adnunk koordinátákkal. Ugyanígy az ugrálásnál is. Például:
+```shell
+Mozgatandó bábu: 1,-1
+Új pozíció: 1,0
+```
+Hogyha valamelyik játékosnak már csak két bábuja marad, akkor véget ér a játék:
+
+<img src="images/gameover.jpg" width=400>
+
+
+
+
 
 ## Az AI stratégiája
 Az AI stratégiája minden fázisban prioritási listákat követ. Az AI ellenfelét a továbbiakban player-nek nevezzük.
@@ -82,9 +98,15 @@ Lerakó stratégia prioritási listája:
 Lépő stratégia prioritási listája:
 - az AI befejezi a saját malmát egy lépéssel
 - az AI megakadályozza a player malmát egy lépéssel
+- az AI csikicsukit hoz létre
 - az AI potenciális malomra törekszik
-- az AI random lép, de biztonságosan, azaz úgy, hogy nem alakít ki malomlehetőséget a player-nek
 - az AI random lép
+
+Ugráló stratégia prioritási listája:
+- az AI saját malmot hoz létre
+- az AI blokkolja a player malmát
+- az AI elkezd vagy folytat egy malmot
+- az AI random ugrik
 
 Levevő stratégia prioritási listája:
 - az AI a player csikicsukijából vesz le
@@ -92,11 +114,7 @@ Levevő stratégia prioritási listája:
 - az AI a saját lehetséges malmát blokkoló player-bábut veszi le
 - az AI azokból vesz le egyet, akiknek a legtöbb saját színű szomszédjuk van (mert ott, ahol sok bábuja van egy kupacban a playernek, nagyobb a valószínűsége a malomnak)
 
-Ugráló stratégia prioritási listája:
-- az AI saját malmot hoz létre
-- az AI blokkolja a player malmát
-- az AI elkezd vagy folytat egy malmot
-- az AI random ugrik
+
 
 
 
