@@ -592,9 +592,3 @@ class Malom:
         return random.choice(valid_moves)
 game = Malom()
 game.play_game()
-
-#Feladatok: strategy programozás, tesztelés, readme és egyéb dokumentáció-írás
-#Legyen random vagy esetleg választható, hogy ki kezd?
-#Ha nem tud lépni, ugorhat/játék vége?
-#Legyen jelölt az épp lépő bábu, hogy lehessen normálisan követni mi történt?
-#A vizualizációs ablakot miért összevissza dobálja fel?
