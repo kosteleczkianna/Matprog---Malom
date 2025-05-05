@@ -24,11 +24,11 @@ A játék során a tábla csomópontjaira mindig koordinátákkal tudunk hivatko
 A kódban a play_game függvényben be tudjuk állítani azt, hogy fejenként hány bábu legyen a játékban:
 
 ```python
-    def play_game(self):
+   def play_game(self): # Lejátszatja a játékot
         self.draw_board()
-        for i in range(18): # 9-9 placing lépés
+        for i in range(18): # 9-9 placing
             self.place_piece(self.turn)
-        while self.player_pieces >= 3 and self.ai_pieces >= 3:
+        while self.player_pieces >= 3 and self.ai_pieces >= 3: # Lépnek, amíg több mint 3 bábujuk van, ha csak 3, akkor ugranak
             if self.turn == "Player":
                 if self.player_pieces > 3:
                     self.move_piece(self.turn)
@@ -75,9 +75,11 @@ Ha sikerül malmot raknunk, akkor rá fog kérdezni a program, hogy az AI melyik
 Mozgatandó bábu: 1,-1
 Új pozíció: 1,0
 ```
-Hogyha valamelyik játékosnak már csak két bábuja marad, akkor véget ér a játék:
+Hogyha valamelyik játékosnak már csak két bábuja marad, akkor véget ér a játék és a program kiírja, hogy nyertél vagy vesztettél:
 
-<img src="images/gameover.jpg" width=400>
+<img src="images/nyertel.jpg" width=400>
+
+<img src="images/vesztettel.jpg" width=400>
 
 
 
@@ -100,6 +102,7 @@ Lépő stratégia prioritási listája:
 - az AI megakadályozza a player malmát egy lépéssel
 - az AI csikicsukit hoz létre
 - az AI potenciális malomra törekszik
+- az AI megnyitja az egyik malmát
 - az AI random lép
 
 Ugráló stratégia prioritási listája:
