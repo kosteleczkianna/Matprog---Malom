@@ -18,6 +18,9 @@ class Malom:
         self.player_pieces = 0 # A játékos bábuinak száma
         self.ai_pieces = 0 # A számítógép bábuinak száma
         self.turn = "Player" # Player kezd
+        self.placing_phase = True
+        self.remaining_player_pieces = 9
+        self.remaining_ai_pieces = 9
         self.mills = [[(-3, -3), (-3, 0), (-3, 3)], [(-3, 3), (0, 3), (3, 3)], [(3, 3), (3, 0), (3, -3)], [(3, -3), (0, -3), (-3, -3)],
                       [(-2, -2), (-2, 0), (-2, 2)], [(-2, 2), (0, 2), (2, 2)], [(2, 2), (2, 0), (2, -2)], [(2, -2), (0, -2), (-2, -2)],
                       [(-1, -1), (-1, 0), (-1, 1)], [(-1, 1), (0, 1), (1, 1)], [(1, 1), (1, 0), (1, -1)], [(1, -1), (0, -1), (-1, -1)],
@@ -44,6 +47,11 @@ class Malom:
                 ax.plot(*pos, 'o', markersize=8, color='black', markeredgecolor='grey')
             else: # Üres helyek
                 ax.plot(*pos, 'ko', markersize=10)
+            ax.text(pos[0] + 0.1, pos[1] + 0.1, str(pos), fontsize=8, color='grey', fontstyle='italic') # Koordináták
+        
+        if self.placing_phase: # Megmondja, hány lerakható bábu van még
+            plt.text(4, 4, f'Megmaradt bábuk (Player): {self.remaining_player_pieces}', fontsize=10, fontstyle='italic', weight='bold', ha='right', va='top')
+            plt.text(-4, 4, f'Megmaradt bábuk (AI): {self.remaining_ai_pieces}', fontsize=10, fontstyle='italic', weight='bold', ha='left', va='top')
         plt.show()
 
     def is_in_mill(self, player, position): # Megmondja, hogy az adott pozíció az adott játékos egy malmához tartozik-e
@@ -91,6 +99,7 @@ class Malom:
                 pos = tuple(map(int, input("Pozíció (pl. 1,1): ").split(",")))
             self.board[pos] = "Player"
             self.player_pieces += 1
+            self.remaining_player_pieces -= 1
             self.draw_board()
             if self.is_in_mill("Player", pos) == True: # Ha malmot csinált a játékos, levetet vele egy bábut
                 self.remove_opponent_piece("AI")
@@ -99,6 +108,7 @@ class Malom:
             pos = self.placing_strategy()
             self.board[pos] = "AI"
             self.ai_pieces += 1
+            self.remaining_ai_pieces -= 1
             self.draw_board()
             if self.is_in_mill("AI", pos) == True: # Ha malmot csinált a játékos, levetet vele egy bábut
                 self.remove_opponent_piece("Player")
@@ -195,6 +205,7 @@ class Malom:
         self.draw_board()
         for i in range(18): # 9-9 placing
             self.place_piece(self.turn)
+        self.placing_phase = False
         while self.player_pieces >= 3 and self.ai_pieces >= 3: # Lépnek, amíg több mint 3 bábujuk van, ha csak 3, akkor ugranak
             if self.turn == "Player":
                 if self.player_pieces > 3:
